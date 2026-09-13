@@ -52,6 +52,29 @@ ln -s /你的项目路径/flat-color-dashed-art ~/.agents/skills/flat-color-dash
 使用 $flat-color-dashed-art，画一面长满龟背竹的植物墙，输出 A4 横向版本。
 ```
 
+## 生成效果示例
+
+以下示例展示了从上传原图到三份生成素材的完整流程。
+
+<table>
+  <tr>
+    <th>上传原图</th>
+    <th>纯色母版</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="examples/chicken/source.png" alt="小鸡原图" width="320"></td>
+    <td align="center"><img src="examples/chicken/flat-color.png" alt="小鸡纯色图" width="320"></td>
+  </tr>
+  <tr>
+    <th>虚线线框图</th>
+    <th>最终描线练习页</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="examples/chicken/dashed-outline.png" alt="小鸡虚线线框图" width="320"></td>
+    <td align="center"><img src="examples/chicken/tracing-worksheet.png" alt="小鸡描线练习页" width="320"></td>
+  </tr>
+</table>
+
 ## 输出规格
 
 三份 PNG 会使用相同的 A4 尺寸和方向：
@@ -81,6 +104,7 @@ Skill 会用程序对图片进行等比缩放和补白，不会拉伸或裁切�
 - `assets/worksheet-layout-reference.png`：最终练习页布局参考；
 - `scripts/normalize_a4.py`：A4 尺寸与方向归一化脚本；
 - `scripts/compose_worksheet.py`：最终练习页排版脚本；
+- `examples/chicken/`：README 中使用的小鸡原图和三份生成示例；
 - `agents/openai.yaml`：Codex 界面元数据。
 
 ## 运行要求
