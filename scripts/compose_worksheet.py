@@ -9,11 +9,21 @@ from pathlib import Path
 from PIL import Image, ImageChops
 
 
+A4_MM = (210, 297)
+DEFAULT_DPI = 150
+
+
 def ratio(value: str) -> float:
     parsed = float(value)
     if not 0 < parsed < 1:
         raise argparse.ArgumentTypeError("ratio must be greater than 0 and less than 1")
     return parsed
+
+
+def a4_pixel_size(orientation: str, dpi: int) -> tuple[int, int]:
+    short = round(A4_MM[0] / 25.4 * dpi)
+    long = round(A4_MM[1] / 25.4 * dpi)
+    return (short, long) if orientation == "portrait" else (long, short)
 
 
 def content_crop(image: Image.Image, padding_ratio: float = 0.015) -> Image.Image:
@@ -50,8 +60,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--color", required=True, type=Path, help="Accepted flat-color master")
     parser.add_argument("--outline", required=True, type=Path, help="Accepted dashed-outline master")
     parser.add_argument("--output", required=True, type=Path, help="New PNG worksheet path")
-    parser.add_argument("--page-width", type=int, help="Output width; defaults to outline width")
-    parser.add_argument("--page-height", type=int, help="Output height; defaults to outline height")
+    parser.add_argument(
+        "--orientation",
+        choices=("portrait", "landscape"),
+        default="portrait",
+        help="A4 page orientation (default: portrait)",
+    )
+    parser.add_argument("--dpi", type=int, default=DEFAULT_DPI, help="A4 raster DPI (default: 150)")
     parser.add_argument("--main-width", type=ratio, default=0.72, help="Main-art maximum width ratio")
     parser.add_argument("--main-height", type=ratio, default=0.76, help="Main-art maximum height ratio")
     parser.add_argument("--thumb-width", type=ratio, default=0.18, help="Color-thumbnail maximum width ratio")
@@ -72,14 +87,12 @@ def main() -> None:
 
     with Image.open(args.outline) as opened_outline:
         outline = content_crop(opened_outline)
-        default_width, default_height = opened_outline.size
     with Image.open(args.color) as opened_color:
         color = content_crop(opened_color)
 
-    page_width = args.page_width or default_width
-    page_height = args.page_height or default_height
-    if page_width < 64 or page_height < 64:
-        raise SystemExit("page dimensions must both be at least 64 pixels")
+    if args.dpi < 36 or args.dpi > 1200:
+        raise SystemExit("dpi must be between 36 and 1200")
+    page_width, page_height = a4_pixel_size(args.orientation, args.dpi)
 
     canvas = Image.new("RGB", (page_width, page_height), "white")
     main = fit(outline, round(page_width * args.main_width), round(page_height * args.main_height))
@@ -102,7 +115,7 @@ def main() -> None:
     canvas.paste(thumbnail, (thumb_x, thumb_y))
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(args.output, format="PNG", optimize=True)
+    canvas.save(args.output, format="PNG", optimize=True, dpi=(args.dpi, args.dpi))
 
 
 if __name__ == "__main__":

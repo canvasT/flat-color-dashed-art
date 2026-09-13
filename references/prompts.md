@@ -1,8 +1,8 @@
 # Production prompts
 
-Use these prompts with the built-in `image_gen` tool. Replace brace-delimited variables with facts observed from the user's upload. Always state image roles explicitly.
+Use these prompts with the built-in `image_gen` tool. Replace brace-delimited variables with facts observed from the user's upload or stated in the user's text description. In edit mode, always state image roles explicitly.
 
-## Stage 1 — flat-color conversion
+## Stage 1A — uploaded-image conversion
 
 ```text
 Use case: style-transfer
@@ -10,10 +10,11 @@ Asset type: paired educational illustration master
 Primary request: Convert Image 1 into the clean flat-color 2D illustration style of Image 2.
 
 Input roles:
-- Image 1 is the exact edit target and composition source. Preserve its canvas ratio, {LAYOUT}, subject count, identities, order, positions, directions, scale, spacing, and crop.
+- Image 1 is the exact edit target and composition source. Preserve {LAYOUT}, subject count, identities, order, positions, directions, relative scale, spacing, and crop behavior.
 - Image 2 is a style reference only. Match its thick smooth uniform near-black outlines, simplified recognizable closed shapes, crisp boundaries, and flat solid color regions. Do not copy its subjects or layout.
 
-Layout invariants: {LAYOUT_LOCK}. Do not impose a different grid, A4 ratio, margin system, or crop.
+Target canvas: A4 {A4_ORIENTATION}, approximately {A4_PIXEL_SIZE}. Fit the complete source composition proportionally within this canvas without distortion or cropping. Use pure white for any added outer canvas.
+Layout invariants: {LAYOUT_LOCK}. Do not impose a different grid, rearrange cells, or crop subjects.
 Subject invariants: {SUBJECT_LOCK}.
 Background rule: {BACKGROUND_RULE}.
 
@@ -29,11 +30,34 @@ Constraints: change only the rendering style. No text, labels, letters, numbers,
 ### Stage 1 targeted correction
 
 ```text
-Precise flat-color correction only. Preserve this exact image's canvas, layout, subjects, order, shapes, pose, direction, scale, crop, and linework.
+Precise flat-color correction only. Preserve this exact A4 {A4_ORIENTATION} canvas, layout, subjects, order, shapes, pose, direction, scale, crop, and linework.
 
 Remove every remaining tonal transition. Repaint every bounded subject region and every background region with one visually constant solid fill from edge to edge. No lighter center, darker edge, vignette, directional light, highlight, reflection, shadow, glow, bevel, texture, transparency, 3D volume, or gray halo. Keep only uniform solid-color shapes and uniform near-black strokes.
 
 Do not alter geometry or add/remove details, subjects, facial features, panels, text, or decorations.
+```
+
+## Stage 1B — text-only flat-color generation
+
+Use this prompt only when the user supplied no image. This is a brand-new generation: do not pass `referenced_image_paths` or recent conversation images to `image_gen`.
+
+```text
+Use case: text-to-image
+Asset type: A4 flat-color educational illustration master
+Primary request: Create {USER_SCENE}.
+
+Target canvas: A4 {A4_ORIENTATION}, approximately {A4_PIXEL_SIZE}.
+Composition: {COMPOSITION_PLAN}. Keep every requested subject fully visible, clearly separated, and inside generous safe margins. Do not crop important anatomy or object structure.
+Subject requirements: {SUBJECT_LOCK}.
+Background rule: {BACKGROUND_RULE}.
+
+Rendering style: clean preschool 2D flat-color illustration with thick, smooth, rounded, uniform near-black outlines; simplified but recognizable closed shapes; crisp boundaries; and a small, controlled palette of bright solid colors. Preserve meaningful anatomy and real object structure.
+
+Strict solid-color rule: every bounded region uses one completely uniform solid fill from edge to edge. Absolutely no gradients, lighting, shading, highlights, reflections, shadows, ambient occlusion, glow, bevel, texture, watercolor, brush grain, transparency, or 3D volume. No halo around outlines.
+
+Semantic rule: depict the requested subjects in their recognizable real form. Do not invent anthropomorphic features. Real-world nonliving objects have no eyes, mouth, cheeks, limbs, clothes, or behavior unless explicitly requested. Animals keep recognizable anatomical features without added human clothing or gestures.
+
+Constraints: satisfy the requested subject count and relationships exactly. No text, labels, letters, numbers, logos, watermark, signature, unrequested props, decorative icons, extra subjects, duplicate subjects, or missing subjects. Do not introduce a grid or collage unless explicitly requested.
 ```
 
 ## Stage 2 — dashed-outline conversion
@@ -44,7 +68,7 @@ Asset type: printable dashed-outline tracing and coloring sheet
 Primary request: Convert Image 1 into a matching black-and-white dashed-outline sheet using only the line treatment of Image 2.
 
 Input roles:
-- Image 1 is the exact edit target and sole composition source. Preserve its canvas ratio, layout, subject count, identities, order, positions, directions, silhouettes, internal structure, scale, spacing, and crop.
+- Image 1 is the exact edit target and sole composition source. Preserve its A4 {A4_ORIENTATION} canvas, layout, subject count, identities, order, positions, directions, silhouettes, internal structure, scale, spacing, and crop.
 - Image 2 is a line-style reference only. Match its bold black rounded short dashes, even dash rhythm, clean white interiors, and high contrast. Do not copy its subject or layout.
 
 Required edit: remove every color, fill, painted texture, background tile, gradient, highlight, and shadow from Image 1. Make the entire background and all enclosed interiors pure white. Convert every outer contour and meaningful internal boundary into evenly spaced thick black short dashes with rounded ends.
@@ -66,11 +90,15 @@ Replace every remaining continuous contour with bold rounded short black dashes.
 
 ## Variables
 
-- `{LAYOUT}`: concise description such as `a 3-column × 5-row edge-to-edge grid` or `one centered subject on a portrait canvas`.
+- `{LAYOUT}`: concise description such as `a 3-column × 5-row grid` or `one centered subject`.
 - `{LAYOUT_LOCK}`: exact grid count, cell proportions, margins/gutters, alignment, crop behavior, and background segmentation observed in Image 1.
 - `{SUBJECT_LOCK}`: subject list in reading order plus fixed pose, direction, and distinguishing features.
 - `{BACKGROUND_RULE}`: for tiled art, preserve each tile and flatten it to one solid color; otherwise default to pure white unless the user requested another treatment.
+- `{USER_SCENE}`: a concise complete restatement of the requested picture, including all explicitly requested subjects and actions.
+- `{COMPOSITION_PLAN}`: the explicit requested layout, or a concrete conservative plan inferred from the description, such as `one full-body subject centered on white`.
+- `{A4_ORIENTATION}`: `portrait` by default, or `landscape` when requested.
+- `{A4_PIXEL_SIZE}`: `1240 × 1754 pixels at 150 DPI` for portrait, or `1754 × 1240 pixels at 150 DPI` for landscape.
 
 ## Final worksheet composition
 
-Do not add the upper-right color reference through an image-generation prompt. Keep the Stage 1 and Stage 2 outputs unchanged and compose the final worksheet with `scripts/compose_worksheet.py`. The bundled program encodes the layout shown by `assets/worksheet-layout-reference.png` while excluding the screenshot's hand, pencil, desk, page curl, playback icon, text, and other photographic content.
+Do not add the upper-right color reference through an image-generation prompt. Normalize both accepted masters with `scripts/normalize_a4.py`, then keep them unchanged and compose the final worksheet with `scripts/compose_worksheet.py --orientation {A4_ORIENTATION}`. The bundled program encodes the layout shown by `assets/worksheet-layout-reference.png` while excluding the screenshot's hand, pencil, desk, page curl, playback icon, text, and other photographic content.
