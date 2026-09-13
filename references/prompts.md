@@ -71,3 +71,6 @@ Replace every remaining continuous contour with bold rounded short black dashes.
 - `{SUBJECT_LOCK}`: subject list in reading order plus fixed pose, direction, and distinguishing features.
 - `{BACKGROUND_RULE}`: for tiled art, preserve each tile and flatten it to one solid color; otherwise default to pure white unless the user requested another treatment.
 
+## Final worksheet composition
+
+Do not add the upper-right color reference through an image-generation prompt. Keep the Stage 1 and Stage 2 outputs unchanged and compose the final worksheet with `scripts/compose_worksheet.py`. The bundled program encodes the layout shown by `assets/worksheet-layout-reference.png` while excluding the screenshot's hand, pencil, desk, page curl, playback icon, text, and other photographic content.

@@ -1,5 +1,5 @@
 interface:
   display_name: "Flat Color & Dashed Art"
-  short_description: "Create flat-color art and matching dashed outlines"
+  short_description: "Create flat art, dashed lines, and tracing worksheets"
   brand_color: "#FF4D4F"
-  default_prompt: "Use $flat-color-dashed-art to convert my uploaded image into flat-color art, then create a matching dashed-outline sheet."
+  default_prompt: "Use $flat-color-dashed-art to create flat-color art, a matching dashed outline, and a worksheet with the color reference at the upper right."
