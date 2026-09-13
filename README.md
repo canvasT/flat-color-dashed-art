@@ -1,5 +1,7 @@
 # Flat Color & Dashed Art
 
+English | [简体中文](README.zh-CN.md)
+
 A Codex Skill that turns an uploaded image or a text-only description into three matched assets:
 
 1. an A4 layout-preserving flat-color 2D illustration;
@@ -13,7 +15,7 @@ With an upload, the workflow preserves the image's composition inside a consiste
 Clone the repository directly into your Codex skills directory:
 
 ```bash
-git clone https://github.com/YOUR_ACCOUNT/flat-color-dashed-art.git ~/.agents/skills/flat-color-dashed-art
+git clone https://github.com/canvasT/flat-color-dashed-art.git ~/.agents/skills/flat-color-dashed-art
 ```
 
 Restart or reload Codex after installation.
